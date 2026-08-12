@@ -3,7 +3,7 @@ module Treely
     attr_accessor :style
 
     def initialize
-      @style = Tree::Style::UNICODE
+      @style = :unicode
     end
   end
 

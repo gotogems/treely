@@ -8,14 +8,12 @@ module Treely
     attr_writer :formatter
 
     def initialize(elems = [], style: :unicode)
-      @style = Style.get(style) if style.is_a?(Symbol)
-      @style = Style::UNICODE   if @style.nil?
+      @style = Style.get(style) || Style::UNICODE
+      @buffer = Buffer.new(walk(elems))
       @formatter = -> { _1.to_s }
-      @elems = elems
     end
 
-    def follow(stream)
-      buffer = Buffer.new(stream)
+    def each_line
       depth = 0
       i = 0
 
@@ -24,7 +22,7 @@ module Treely
         indents  = []
 
         loop do
-          current = buffer[i]
+          current = @buffer[i]
           break if current.nil?
 
           elem, cur_depth, maybe_last = current
@@ -33,7 +31,7 @@ module Treely
             j = i + 1
 
             loop do
-              t = buffer[j]
+              t = @buffer[j]
               break if t.nil?
               break if t[1] < cur_depth
 
@@ -68,13 +66,13 @@ module Treely
       end
     end
 
-    def flatten(elems, depth = 0, maybe_last = true)
-      last_leaf, cont_set = find_last_hint(elems)
+    def walk(elems, depth = 0, maybe_last = true)
+      last_leaf, end_marks = find_last_hint(elems)
 
       Enumerator.new do |emit|
         elems.each_with_index do |elem, i|
           if container?(elem)
-            flatten(elem, depth + 1, cont_set.include?(i))
+            walk(elem, depth + 1, end_marks.include?(i))
               .each { |t| emit << t }
           else
             emit << [
@@ -87,8 +85,8 @@ module Treely
       end
     end
 
-    def render(elem, indent, last_branch)
-      lines = @formatter.call(elem).lines(chomp: true)
+    def render(elem, indent, last_branch, fn = @formatter)
+      lines = fn.call(elem).lines(chomp: true)
       lines = [''] if lines.empty?
 
       branch = last_branch ? @style[:last_branch] : @style[:branch]
@@ -99,9 +97,14 @@ module Treely
       end.join("\n")
     end
 
+    alias_method :follow, :each_line
+    alias_method :depths, :walk
+
+    private
+
     def find_last_hint(elems)
       last_leaf = -1
-      cont_set = Set.new
+      end_marks = Set.new
 
       elems.each_with_index do |elem, i|
         next_elem = elems[i + 1]
@@ -109,7 +112,7 @@ module Treely
         next_is_cont = container?(next_elem)
 
         if cur_is_cont && !next_is_cont
-          cont_set << i
+          end_marks << i
         end
 
         if next_elem && !next_is_cont
@@ -119,7 +122,7 @@ module Treely
         end
       end
 
-      [last_leaf, cont_set]
+      [last_leaf, end_marks]
     end
 
     def container?(elem)
