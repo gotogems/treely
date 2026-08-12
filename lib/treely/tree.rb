@@ -1,12 +1,17 @@
 require 'treely/tree/buffer'
 require 'treely/tree/style'
+require 'set'
 
 module Treely
   class Tree
     attr_reader :style
+    attr_writer :formatter
 
-    def initialize(style)
-      @style = style
+    def initialize(elems = [], style: :unicode)
+      @style = Style.get(style) if style.is_a?(Symbol)
+      @style = Style::UNICODE   if @style.nil?
+      @formatter = -> { _1.to_s }
+      @elems = elems
     end
 
     def follow(stream)
@@ -47,9 +52,9 @@ module Treely
 
           if cur_depth > depth
             if was_last
-              indents << @style.indent
+              indents << @style[:indent]
             else
-              indents << @style.bar
+              indents << @style[:bar]
             end
           elsif cur_depth < depth
             indents = indents.take(cur_depth)
@@ -61,18 +66,6 @@ module Treely
           i += 1
         end
       end
-    end
-
-    def render(elem, indent, last_branch)
-      lines = elem.split("\n")
-      lines = [''] if lines.empty?
-
-      branch = last_branch ? @style.last_branch : @style.branch
-      bar    = last_branch ? @style.indent : @style.bar
-
-      lines.map.with_index do |line, i|
-        indent + (i.zero? ? branch : bar) + line
-      end.join("\n")
     end
 
     def flatten(elems, depth = 0, maybe_last = true)
@@ -92,6 +85,18 @@ module Treely
           end
         end
       end
+    end
+
+    def render(elem, indent, last_branch)
+      lines = @formatter.call(elem).lines(chomp: true)
+      lines = [''] if lines.empty?
+
+      branch = last_branch ? @style[:last_branch] : @style[:branch]
+      bar    = last_branch ? @style[:indent]      : @style[:bar]
+
+      lines.map.with_index do |line, i|
+        indent + (i.zero? ? branch : bar) + line
+      end.join("\n")
     end
 
     def find_last_hint(elems)
