@@ -77,10 +77,9 @@ module Treely
       end.join("\n")
     end
 
-    alias_method :follow, :each_line
-    alias_method :depths, :walk
-
     private
+
+    alias_method :follow, :each_line
 
     def walk(elems, level = 0, maybe_last = true)
       last_leaf, end_marks = level_hints(elems)
@@ -102,7 +101,7 @@ module Treely
     end
 
     def level_hints(elems)
-      last_leaf = elems.rindex { !container?(_1) } || -1
+      end_leaf = elems.rindex { !container?(_1) } || -1
       end_marks = Set.new
 
       elems.each_with_index do |elem, i|
@@ -114,7 +113,7 @@ module Treely
         end
       end
 
-      [last_leaf, end_marks]
+      [end_leaf, end_marks]
     end
 
     def container?(elem)

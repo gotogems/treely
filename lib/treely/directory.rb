@@ -3,25 +3,30 @@ module Treely
     extend Forwardable
 
     def initialize
+      @dirs_count  = 0
+      @files_count = 0
     end
 
-    def_delegator :File, :file?
-    def_delegator :File, :directory?
+    def walk(root, level = 0, maybe_last = true)
+      Enumerator.new do |emit|
+        emit << [basename(root), level, maybe_last]
 
-    def level_hints(paths)
-      last_file = paths.rindex { file?(_1) } || -1
-      dir_marks = Set.new
+        if directory?(root)
+          paths = Dir.children(root)
+            .sort.map { join(root, _1) }
 
-      paths.each_with_index do |path, i|
-        next_path = paths[i + 1]
-        next_is_dir = next_path && directory?(next_path)
-
-        if directory?(path) && !next_is_dir
-          dir_marks << i
+          paths.each_with_index do |path, i|
+            walk(path, level + 1, i.next == paths.length)
+              .each { |t| emit << t }
+          end
         end
       end
-
-      [last_file, dir_marks]
     end
+
+    private
+
+    def_delegator :File, :directory?
+    def_delegator :File, :basename
+    def_delegator :File, :join
   end
 end
