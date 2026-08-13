@@ -1,3 +1,5 @@
+require 'forwardable'
+require 'set'
 require 'treely/configuration'
 require 'treely/tree'
 require 'treely/version'

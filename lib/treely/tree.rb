@@ -1,6 +1,5 @@
 require 'treely/tree/buffer'
 require 'treely/tree/style'
-require 'set'
 
 module Treely
   class Tree
@@ -66,25 +65,6 @@ module Treely
       end
     end
 
-    def walk(elems, depth = 0, maybe_last = true)
-      last_leaf, end_marks = find_last_hint(elems)
-
-      Enumerator.new do |emit|
-        elems.each_with_index do |elem, i|
-          if container?(elem)
-            walk(elem, depth + 1, end_marks.include?(i))
-              .each { |t| emit << t }
-          else
-            emit << [
-              elem,
-              depth,
-              maybe_last && last_leaf == i
-            ]
-          end
-        end
-      end
-    end
-
     def render(elem, indent, last_branch, fn = @formatter)
       lines = fn.call(elem).lines(chomp: true)
       lines = [''] if lines.empty?
@@ -102,23 +82,35 @@ module Treely
 
     private
 
-    def find_last_hint(elems)
-      last_leaf = -1
+    def walk(elems, level = 0, maybe_last = true)
+      last_leaf, end_marks = level_hints(elems)
+
+      Enumerator.new do |emit|
+        elems.each_with_index do |elem, i|
+          if container?(elem)
+            walk(elem, level + 1, end_marks.include?(i))
+              .each { |t| emit << t }
+          else
+            emit << [
+              elem,
+              level,
+              maybe_last && last_leaf == i
+            ]
+          end
+        end
+      end
+    end
+
+    def level_hints(elems)
+      last_leaf = elems.rindex { !container?(_1) } || -1
       end_marks = Set.new
 
       elems.each_with_index do |elem, i|
-        next_elem = elems[i + 1]
         cur_is_cont = container?(elem)
-        next_is_cont = container?(next_elem)
+        next_is_cont = container?(elems[i + 1])
 
         if cur_is_cont && !next_is_cont
           end_marks << i
-        end
-
-        if next_elem && !next_is_cont
-          last_leaf = i + 1
-        elsif !cur_is_cont
-          last_leaf = i
         end
       end
 
