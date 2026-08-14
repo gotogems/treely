@@ -1,3 +1,37 @@
 #!/usr/bin/env ruby
 require 'treely'
 require 'treely/directory'
+require 'optparse'
+
+Options = Struct.new(
+  :dirs_first, :files_first,
+  :only_dirs,  :show_hidden,
+  :ignore,     :level,
+  :style
+) do
+  def self.default
+    new(false, false, false, false)
+  end
+end
+
+opts = Options.default
+parser = OptionParser.new do |p|
+  p.banner = 'Usage: treely [options] [PATH]'
+  p.on('-d', '--only-dirs', 'List only directories') {}
+  p.on('-A', '--show-hidden', 'List hidden (dot) entries') {}
+  p.on('-D', '--dirs-first', 'Sort directories before files') {}
+  p.on('-F', '--files-first', 'Sort files before directories') {}
+  p.on('-I', '--ignore PATTERN', 'Exclude entries matching PATTERN') {}
+  p.on('-L', '--level N', Integer, 'Descend at most N levels') {}
+  p.on('-s', '--style NAME', 'Style: rounded or triangle') {}
+  p.on('-h', '--help', 'Show this help message') do
+    puts p
+    exit
+  end
+end
+
+begin
+  parser.parse!
+rescue OptionParser::ParseError => err
+  $stderr.puts "Error: #{err.message}"
+end

@@ -4,6 +4,8 @@ module Treely
 
     def initialize
       @style = :unicode
+      @filter = nil
+      @formatter = nil
     end
   end
 

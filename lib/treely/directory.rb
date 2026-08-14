@@ -5,6 +5,9 @@ module Treely
     def initialize
       @dirs_count  = 0
       @files_count = 0
+      @file_limit  = -1
+      @filters     = []
+      @level       = -1
     end
 
     def walk(root, level = 0, maybe_last = true)
