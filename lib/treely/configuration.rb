@@ -3,7 +3,7 @@ module Treely
     attr_accessor :style
 
     def initialize
-      @style = :unicode
+      @style = :default
       @filter = nil
       @formatter = nil
     end

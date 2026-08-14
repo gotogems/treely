@@ -1,37 +1,44 @@
 #!/usr/bin/env ruby
+require 'optparse'
+require 'ostruct'
 require 'treely'
 require 'treely/directory'
-require 'optparse'
 
-Options = Struct.new(
-  :dirs_first, :files_first,
-  :only_dirs,  :show_hidden,
-  :ignore,     :level,
-  :style
-) do
-  def self.default
-    new(false, false, false, false)
-  end
-end
+options = OpenStruct.new(
+  :dirs_first  => false,
+  :files_first => false,
+  :only_dirs   => false,
+  :show_hidden => false,
+  :ignore_p    => nil,
+  :level       => -1,
+  :style       => nil
+)
 
-opts = Options.default
-parser = OptionParser.new do |p|
-  p.banner = 'Usage: treely [options] [PATH]'
-  p.on('-d', '--only-dirs', 'List only directories') {}
-  p.on('-A', '--show-hidden', 'List hidden (dot) entries') {}
-  p.on('-D', '--dirs-first', 'Sort directories before files') {}
-  p.on('-F', '--files-first', 'Sort files before directories') {}
-  p.on('-I', '--ignore PATTERN', 'Exclude entries matching PATTERN') {}
-  p.on('-L', '--level N', Integer, 'Descend at most N levels') {}
-  p.on('-s', '--style NAME', 'Style: rounded or triangle') {}
-  p.on('-h', '--help', 'Show this help message') do
-    puts p
+parser = OptionParser.new do |op|
+  op.banner = 'Usage: treely [options] [PATH]'
+  op.on('-d', '--only-dirs', 'List only directories') {}
+  op.on('-A', '--show-hidden', 'List hidden (dot) entries') {}
+  op.on('-D', '--dirs-first', 'Sort directories before files') {}
+  op.on('-F', '--files-first', 'Sort files before directories') {}
+  op.on('-I', '--ignore PATTERN', 'Exclude entries matching PATTERN') {}
+  op.on('-L', '--level N', Integer, 'Descend at most N levels') {}
+  op.on('-s', '--style NAME', 'Style: rounded or triangle') { options.style = _1.to_sym }
+  op.on('-h', '--help', 'Show this help message') do
+    puts op
     exit
   end
 end
 
 begin
   parser.parse!
+
+  Treely.configure do |config|
+    config.style = options.style
+  end
+
+  tree = Treely::Tree.new(style: options.style)
+  tree.walk_dir = ARGV.shift || Dir.pwd
+  tree.render.each { puts _1 }
 rescue OptionParser::ParseError => err
   $stderr.puts "Error: #{err.message}"
 end

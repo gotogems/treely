@@ -23,7 +23,7 @@ module Treely
       }
 
       STYLES = {
-        :unicode  => UNICODE,
+        :default  => UNICODE,
         :rounded  => UNICODE_ROUNDED,
         :triangle => UNICODE_TRIANGLE
       }

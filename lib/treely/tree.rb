@@ -4,15 +4,16 @@ require 'treely/tree/style'
 module Treely
   class Tree
     attr_reader :style
-    attr_writer :formatter
+    attr_reader :filter
+    attr_reader :formatter
 
-    def initialize(elems = [], style: :unicode)
+    def initialize(elems = [], style: :default)
       @style = Style.get(style) || Style::UNICODE
       @buffer = Buffer.new(walk(elems))
       @formatter = -> { _1.to_s }
     end
 
-    def each_line
+    def render
       depth = 0
       i = 0
 
@@ -57,7 +58,7 @@ module Treely
             indents = indents.take(cur_depth)
           end
 
-          emit << render(elem, indents.join, last_branch)
+          emit << render_line(elem, indents.join, last_branch)
           was_last = last_branch
           depth = cur_depth
           i += 1
@@ -65,7 +66,9 @@ module Treely
       end
     end
 
-    def render(elem, indent, last_branch, fn = @formatter)
+    protected
+
+    def render_line(elem, indent, last_branch, fn = @formatter)
       lines = fn.call(elem).lines(chomp: true)
       lines = [''] if lines.empty?
 
@@ -78,8 +81,6 @@ module Treely
     end
 
     private
-
-    alias_method :follow, :each_line
 
     def walk(elems, level = 0, maybe_last = true)
       last_leaf, end_marks = level_hints(elems)

@@ -6,7 +6,6 @@ require 'treely/version'
 
 module Treely
   def self.tree(elems)
-    Tree.new(elems)
-      .each_line.to_a.join("\n")
+    Tree.new(elems).render.to_a.join("\n")
   end
 end
