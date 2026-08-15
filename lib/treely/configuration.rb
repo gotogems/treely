@@ -1,11 +1,11 @@
 module Treely
   class Configuration
     attr_accessor :style
+    attr_accessor :filter
+    attr_accessor :formatter
 
     def initialize
-      @style = :default
-      @filter = nil
-      @formatter = nil
+      @style = :unicode
     end
   end
 

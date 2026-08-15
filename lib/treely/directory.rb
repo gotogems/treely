@@ -2,12 +2,23 @@ module Treely
   class Directory
     extend Forwardable
 
+    attr_reader :root
+    attr_reader :dirs_count
+    attr_reader :files_count
+
     def initialize(root, options = {})
+      @root = root || Dir.pwd
       @dirs_count  = 0
       @files_count = 0
       @file_limit  = -1
       @filters     = []
       @level       = -1
+    end
+
+    def to_tree
+      tree = Treely.dir_tree
+      tree.walk_dir = self
+      tree
     end
 
     def walk(root, level = 0, maybe_last = true)
@@ -31,18 +42,9 @@ module Treely
     def_delegator :File, :directory?
     def_delegator :File, :basename
     def_delegator :File, :join
-
-    module Walker
-      def self.included(base)
-        base.attr_reader :walk_dir
-      end
-
-      def walk_dir=(root)
-        @walk_dir = Directory.new(root)
-        @buffer = Tree::Buffer.new(@walk_dir.walk(root))
-      end
-    end
   end
 
-  Tree.include(Directory::Walker)
+  if defined?(Tree)
+    Tree.include(Tree::Adapter::PathWalker)
+  end
 end

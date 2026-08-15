@@ -1,3 +1,4 @@
+require 'treely/tree/adapter'
 require 'treely/tree/buffer'
 require 'treely/tree/style'
 
@@ -7,10 +8,15 @@ module Treely
     attr_reader :filter
     attr_reader :formatter
 
-    def initialize(elems = [], style: :default)
-      @style = Style.get(style) || Style::UNICODE
+    def initialize(elems = [], config: Configuration.new)
+      @style = Style.get_or_default(config.style)
       @buffer = Buffer.new(walk(elems))
+
       @formatter = -> { _1.to_s }
+      @filter    = -> { _1 }
+
+      @formatter = config.formatter if config.formatter.is_a?(Proc)
+      @filter    = config.filter    if config.filter.is_a?(Proc)
     end
 
     def render

@@ -23,10 +23,14 @@ module Treely
       }
 
       STYLES = {
-        :default  => UNICODE,
-        :rounded  => UNICODE_ROUNDED,
-        :triangle => UNICODE_TRIANGLE
+        :unicode          => UNICODE,
+        :unicode_rounded  => UNICODE_ROUNDED,
+        :unicode_triangle => UNICODE_TRIANGLE
       }
+
+      def self.get_or_default(style)
+        STYLES[style] or UNICODE
+      end
 
       def self.get(style)
         STYLES[style]

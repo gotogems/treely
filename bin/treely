@@ -10,8 +10,7 @@ options = OpenStruct.new(
   :only_dirs   => false,
   :show_hidden => false,
   :ignore_p    => nil,
-  :level       => -1,
-  :style       => nil
+  :level       => -1
 )
 
 parser = OptionParser.new do |op|
@@ -22,7 +21,10 @@ parser = OptionParser.new do |op|
   op.on('-F', '--files-first', 'Sort files before directories') {}
   op.on('-I', '--ignore PATTERN', 'Exclude entries matching PATTERN') {}
   op.on('-L', '--level N', Integer, 'Descend at most N levels') {}
-  op.on('-s', '--style NAME', 'Style: rounded or triangle') { options.style = _1.to_sym }
+  op.on('-s', '--style NAME', 'Style: default [UNICODE]') do
+    Treely.configuration.style = _1.to_sym
+  end
+
   op.on('-h', '--help', 'Show this help message') do
     puts op
     exit
@@ -31,14 +33,9 @@ end
 
 begin
   parser.parse!
-
-  Treely.configure do |config|
-    config.style = options.style
-  end
-
-  tree = Treely::Tree.new(style: options.style)
-  tree.walk_dir = ARGV.shift || Dir.pwd
-  tree.render.each { puts _1 }
+  Treely::Directory
+    .new(ARGV.shift, options)
+    .to_tree.render.each { puts _1 }
 rescue OptionParser::ParseError => err
   $stderr.puts "Error: #{err.message}"
 end
