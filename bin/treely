@@ -9,18 +9,18 @@ options = OpenStruct.new(
   :files_first => false,
   :only_dirs   => false,
   :show_hidden => false,
-  :ignore_p    => nil,
+  :ignore_p    => [],
   :level       => -1
 )
 
 parser = OptionParser.new do |op|
   op.banner = 'Usage: treely [options] [PATH]'
-  op.on('-d', '--only-dirs', 'List only directories') {}
-  op.on('-A', '--show-hidden', 'List hidden (dot) entries') {}
-  op.on('-D', '--dirs-first', 'Sort directories before files') {}
-  op.on('-F', '--files-first', 'Sort files before directories') {}
-  op.on('-I', '--ignore PATTERN', 'Exclude entries matching PATTERN') {}
-  op.on('-L', '--level N', Integer, 'Descend at most N levels') {}
+  op.on('-d', '--only-dirs', 'List only directories')           { options.only_dirs   = true }
+  op.on('-A', '--show-hidden', 'List hidden (dot) entries')     { options.show_hidden = true }
+  op.on('-D', '--dirs-first', 'Sort directories before files')  { options.dirs_first  = true }
+  op.on('-F', '--files-first', 'Sort files before directories') { options.files_first = true }
+  op.on('-I', '--ignore PATTERN', 'Exclude entries matching PATTERN') { options.ignore_p << Regexp.new(_1) }
+  op.on('-L', '--level N', Integer, 'Descend at most N levels')       { options.level = _1 }
   op.on('-s', '--style NAME', 'Style: built-in UNICODE') do
     Treely.configuration.style = _1.downcase.to_sym
   end
@@ -33,9 +33,15 @@ end
 
 begin
   parser.parse!
+
+  if options.dirs_first
+    options.files_first = false
+  end
+
   Treely::Directory
     .new(ARGV.shift, options)
     .to_tree.render.each { puts _1 }
 rescue OptionParser::ParseError => err
   $stderr.puts "Error: #{err.message}"
+  exit 1
 end

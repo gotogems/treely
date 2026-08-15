@@ -8,6 +8,7 @@ module Treely
 
     def initialize(root, options = {})
       @root = root || Dir.pwd
+      @options = options
       @dirs_count  = 0
       @files_count = 0
       @file_limit  = -1
