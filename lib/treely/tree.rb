@@ -1,4 +1,3 @@
-require 'treely/tree/adapter'
 require 'treely/tree/buffer'
 require 'treely/tree/style'
 

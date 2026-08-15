@@ -42,9 +42,28 @@ module Treely
     def_delegator :File, :directory?
     def_delegator :File, :basename
     def_delegator :File, :join
+
+    module Source
+      def self.included(base)
+        base.attr_reader :walk_dir
+      end
+
+      def walk_dir=(dir)
+        @walk_dir = dir
+        @buffer = Tree::Buffer.new(source)
+      end
+
+      def source
+        @source ||= @walk_dir.walk(root)
+      end
+
+      def root
+        @root ||= @walk_dir.root
+      end
+    end
   end
 
   if defined?(Tree)
-    Tree.include(Tree::Adapter::PathWalker)
+    Tree.include(Directory::Source)
   end
 end

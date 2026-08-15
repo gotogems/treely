@@ -21,8 +21,8 @@ parser = OptionParser.new do |op|
   op.on('-F', '--files-first', 'Sort files before directories') {}
   op.on('-I', '--ignore PATTERN', 'Exclude entries matching PATTERN') {}
   op.on('-L', '--level N', Integer, 'Descend at most N levels') {}
-  op.on('-s', '--style NAME', 'Style: default [UNICODE]') do
-    Treely.configuration.style = _1.to_sym
+  op.on('-s', '--style NAME', 'Style: built-in UNICODE') do
+    Treely.configuration.style = _1.downcase.to_sym
   end
 
   op.on('-h', '--help', 'Show this help message') do
