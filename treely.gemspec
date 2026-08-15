@@ -10,6 +10,6 @@ Gem::Specification.new do |spec|
   spec.email    = 'oneureka@github.io'
   spec.files    = Dir['lib/**/*.rb']
 
-  spec.executable = 'treely'
+  spec.executables = ['treely']
   spec.required_ruby_version = '>= 3.0'
 end

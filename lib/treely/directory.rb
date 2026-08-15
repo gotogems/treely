@@ -44,6 +44,10 @@ module Treely
     def_delegator :File, :basename
     def_delegator :File, :join
 
+    def add_filter(filter)
+      @filters << filter
+    end
+
     module Source
       def self.included(base)
         base.attr_reader :walk_dir
@@ -66,5 +70,9 @@ module Treely
 
   if defined?(Tree)
     Tree.include(Directory::Source)
+  end
+
+  def self.dir(*args)
+    Directory.new(*args)
   end
 end

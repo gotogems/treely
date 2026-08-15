@@ -38,8 +38,7 @@ begin
     options.files_first = false
   end
 
-  Treely::Directory
-    .new(ARGV.shift, options)
+  Treely.dir(ARGV.shift, options)
     .to_tree.render.each { puts _1 }
 rescue OptionParser::ParseError => err
   $stderr.puts "Error: #{err.message}"
