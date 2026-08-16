@@ -1,16 +1,18 @@
 # Treely
 
-A gem for generating tree-like format
+A gem for generating tree-like formats
+
+> This project is inspired by [treely](https://github.com/junegunn/treely)
 
 ## Installation
 
-Install globally ⤵️
+Install globally:
 
 ```bash
 gem install treely
 ```
 
-Or add to your `Gemfile` ⤵️
+Or add to your `Gemfile`:
 
 ```ruby
 gem 'treely', '>= 1.0.8'
@@ -31,7 +33,7 @@ treely lib --only-dirs -s unicode_rounded
 
 > Run `treely --help` for more details
 
-Render a nested array
+Render a nested array:
 
 ```ruby
 require 'treely'
@@ -39,7 +41,7 @@ require 'treely'
 Treely.tree([1, [2, 3], 4])
 ```
 
-Render a directory
+Render a directory:
 
 ```ruby
 require 'treely'

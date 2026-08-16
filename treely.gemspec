@@ -5,7 +5,7 @@ Gem::Specification.new do |spec|
   spec.version  = Treely::VERSION
   spec.licenses = ['BSD-1-Clause']
   spec.homepage = 'https://dub.sh/treely'
-  spec.summary  = 'A gem for generating tree-like format'
+  spec.summary  = 'A gem for generating tree-like formats'
   spec.author   = 'oneureka'
   spec.email    = 'oneureka@github.io'
   spec.files    = Dir['lib/**/*.rb']
