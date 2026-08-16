@@ -8,12 +8,25 @@ module Treely
 
     def initialize(root, options = {})
       @root = root || Dir.pwd
-      @options = options
+      @dirs_first  = options[:dirs_first]
+      @files_first = options[:files_first]
+      @only_dirs   = options[:only_dirs]
+      @show_hidden = options[:show_hidden]
+      @ignore_path = options[:ignore_p]
       @dirs_count  = 0
       @files_count = 0
       @file_limit  = -1
       @filters     = []
-      @level       = -1
+      @level       = options[:level].to_i
+
+      add_filter(-> { directory?(_1) }) if     @only_dirs
+      add_filter(-> { !hidden?(_1)   }) unless @show_hidden
+
+      if @ignore_path.is_a?(Array)
+        @ignore_path.each do |re|
+          add_filter(-> { !match?(re, _1) })
+        end
+      end
     end
 
     def to_tree
@@ -26,9 +39,10 @@ module Treely
       Enumerator.new do |emit|
         emit << [basename(root), level, maybe_last]
 
-        if directory?(root)
+        if directory?(root) && descend?(level)
           paths = Dir.children(root)
             .sort.map { join(root, _1) }
+            .select { |p| @filters.all? { |f| f.call(p) } }
 
           paths.each_with_index do |path, i|
             walk(path, level + 1, i.next == paths.length)
@@ -46,6 +60,18 @@ module Treely
 
     def add_filter(filter)
       @filters << filter
+    end
+
+    def descend?(level)
+      @level < 0 || level < @level
+    end
+
+    def hidden?(path)
+      basename(path).start_with?('.')
+    end
+
+    def match?(re, p)
+      p.match?(re)
     end
 
     module Source
