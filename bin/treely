@@ -9,6 +9,7 @@ options = OpenStruct.new(
   :files_first => false,
   :only_dirs   => false,
   :show_hidden => false,
+  :no_report   => false,
   :ignore_p    => [],
   :level       => -1
 )
@@ -38,8 +39,9 @@ begin
     options.files_first = false
   end
 
-  Treely.dir(ARGV.shift, options)
-    .to_tree.render.each { puts _1 }
+  Treely.dir(ARGV.shift, options).to_tree
+    .tap { |tree| tree.render.each { puts _1 } }
+    .tap { |tree| tree.walk_dir.summary }
 rescue OptionParser::ParseError => err
   $stderr.puts "Error: #{err.message}"
   exit 1

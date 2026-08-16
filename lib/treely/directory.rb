@@ -12,7 +12,8 @@ module Treely
       @files_first = options[:files_first]
       @only_dirs   = options[:only_dirs]
       @show_hidden = options[:show_hidden]
-      @ignore_path = options[:ignore_p]
+      @no_report   = options[:no_report]
+      @ignore_p    = options[:ignore_p]
       @dirs_count  = 0
       @files_count = 0
       @file_limit  = -1
@@ -22,10 +23,8 @@ module Treely
       add_filter(-> { directory?(_1) }) if     @only_dirs
       add_filter(-> { !hidden?(_1)   }) unless @show_hidden
 
-      if @ignore_path.is_a?(Array)
-        @ignore_path.each do |re|
-          add_filter(-> { !match?(re, _1) })
-        end
+      Array(@ignore_p).each do |re|
+        add_filter(-> (p) { !p.match?(re) })
       end
     end
 
@@ -44,12 +43,33 @@ module Treely
             .sort.map { join(root, _1) }
             .select { |p| @filters.all? { |f| f.call(p) } }
 
+          if @dirs_first or @files_first
+            paths.sort_by! {
+              is_dir = directory?(_1)
+              @dirs_first ? [is_dir ? 0 : 1, _1] : [is_dir ? 1 : 0, _1]
+            }
+          end
+
+          unless @no_report
+            dirs, files = paths.partition { directory?(_1) }
+            @dirs_count += dirs.size
+            @files_count += files.size
+          end
+
           paths.each_with_index do |path, i|
             walk(path, level + 1, i.next == paths.length)
               .each { |t| emit << t }
           end
         end
       end
+    end
+
+    def summary
+      return if @no_report
+      puts "\n%s %s, %s %s" % [
+        @dirs_count,  @dirs_count  == 1 ? 'directory' : 'directories',
+        @files_count, @files_count == 1 ? 'file'      : 'files'
+      ]
     end
 
     private
@@ -63,15 +83,11 @@ module Treely
     end
 
     def descend?(level)
-      @level < 0 || level < @level
+      @level <= 0 || level < @level
     end
 
     def hidden?(path)
       basename(path).start_with?('.')
-    end
-
-    def match?(re, p)
-      p.match?(re)
     end
 
     module Source
